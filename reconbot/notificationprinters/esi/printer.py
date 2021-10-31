@@ -13,9 +13,9 @@ class Printer(object):
     def transform(self, notification):
         text = self.get_notification_text(notification)
         timestamp = self.timestamp_to_date(notification['timestamp'])
-        ping = '<@&789153309827137546>'  # discord user role that should be moved to var from .env      
+        #ping = '<@&789153309827137546>'  # discord user role that should be moved to var from .env      
 
-        return '%s `[%s]` %s' % (ping, timestamp, text)
+        return '`[%s]` %s' % (timestamp, text)
 
     def get_notification_text(self, notification):
 
