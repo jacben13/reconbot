@@ -3,4 +3,4 @@ COPY . /app
 WORKDIR /app
 RUN pip install -U python-dotenv
 RUN pip install -r requirements.txt
-CMD [ "python", "./run.py" ]
+CMD [ "python", "-u", "./run.py" ]

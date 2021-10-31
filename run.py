@@ -1,6 +1,7 @@
 import schedule
 import time
 import os
+import yaml
 
 from reconbot.tasks import esi_notification_task
 from reconbot.notifiers.caching import CachingNotifier
@@ -13,17 +14,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-notification_caching_timer  = 5
+notification_caching_timer  = 10
 attack_notifs_url           = os.getenv("ATTACK_NOTIFS_WEBHOOK_URL")
 infra_notifs_url            = os.getenv("INFRA_NOTIFS_WEBHOOK_URL")
 sso_app_client_id           = os.getenv("SSO_APP_CLIENT_ID")
 sso_app_secret_key          = os.getenv("SSO_APP_SECRET_KEY")
-character_one_name          = os.getenv("CHARACTER_ONE_NAME")
-character_one_id            = int(os.getenv("CHARACTER_ONE_ID"))
-character_one_token         = os.getenv("CHARACTER_ONE_TOKEN")
-character_two_name          = os.getenv("CHARACTER_TWO_NAME")
-character_two_id            = int(os.getenv("CHARACTER_TWO_ID"))
-character_two_token         = os.getenv("CHARACTER_TWO_TOKEN")
+
+with open('./attack_characters.yaml') as file:
+    # The FullLoader parameter handles the conversion from YAML
+    # scalar values to Python the dictionary format
+    attack_characters_list = yaml.load(file)
+
+with open('./infra_characters.yaml') as file:
+    # The FullLoader parameter handles the conversion from YAML
+    # scalar values to Python the dictionary format
+    infra_characters_list = yaml.load(file)
 
 
 discord_webhooks = {
@@ -70,13 +75,6 @@ eve_apis = {
                 'StationConquerMsg',
             ],
         },
-        'characters': {
-            character_one_name: {
-                'character_name': character_one_name,
-                'character_id': character_one_id,
-                'refresh_token': character_one_token
-            },
-        },
         'notifier': CachingNotifier(DiscordWebhookNotifier(attack_notifs_url), duration=7200)
     },
     'infra-notifications-group': {
@@ -112,13 +110,6 @@ eve_apis = {
                 'StationConquerMsg',
             ],
         },
-        'characters': {
-            character_one_name: {
-                'character_name': character_two_name,
-                'character_id': character_two_id,
-                'refresh_token': character_two_token
-            },
-        },
         'notifier': CachingNotifier(DiscordWebhookNotifier(infra_notifs_url), duration=7200)
     }
 }
@@ -132,8 +123,8 @@ def api_to_sso(api):
         api['character_id']
     )
 
-api_queue_attack = ApiQueue(list(map(api_to_sso, eve_apis['attack-notifications-group']['characters'].values())))
-api_queue_infra = ApiQueue(list(map(api_to_sso, eve_apis['infra-notifications-group']['characters'].values())))
+api_queue_attack = ApiQueue(list(map(api_to_sso, attack_characters_list.values())))
+api_queue_infra = ApiQueue(list(map(api_to_sso, infra_characters_list.values())))
 
 def notifications_job_attack():
     esi_notification_task(
@@ -155,8 +146,8 @@ def run_and_schedule(characters, notifications_job):
     notifications_job()
     schedule.every(notification_caching_timer/len(characters)).minutes.do(notifications_job)
 
-run_and_schedule(eve_apis['attack-notifications-group']['characters'], notifications_job_attack)
-run_and_schedule(eve_apis['infra-notifications-group']['characters'], notifications_job_infra)
+run_and_schedule(attack_characters_list, notifications_job_attack)
+run_and_schedule(infra_characters_list, notifications_job_infra)
 
 while True:
     schedule.run_pending()

@@ -1,11 +1,14 @@
 import abc
 import datetime
 import yaml
+import os
 
 from reconbot.notificationprinters.esi.formatter import Formatter
+from dotenv import load_dotenv
 
 class Printer(object):
     __metaclass__ = abc.ABCMeta
+    load_dotenv()
 
     def __init__(self, eve):
         self.eve = eve
@@ -13,7 +16,6 @@ class Printer(object):
     def transform(self, notification):
         text = self.get_notification_text(notification)
         timestamp = self.timestamp_to_date(notification['timestamp'])
-        #ping = '<@&789153309827137546>'  # discord user role that should be moved to var from .env      
 
         return '`[%s]` %s' % (timestamp, text)
 
@@ -113,7 +115,7 @@ class Printer(object):
         return 'New POS anchored in "{0:get_moon(moonID)}" by {0:get_corporation(corpID)}'
 
     def pos_attack(self):
-        return '{0:get_moon(moonID)} POS "{0:get_item(typeID)}" ({0:get_percentage(shieldValue)} shield, {0:get_percentage(armorValue)} armor, {0:get_percentage(hullValue)} hull) under attack by {0:get_character(aggressorID)}'
+        return '__**{0:get_moon(moonID)} Control Tower**__ under attack by {0:get_character(aggressorID)} ({0:get_percentage(shieldValue)} shield, {0:get_percentage(armorValue)} armor, {0:get_percentage(hullValue)} hull)'
 
     def pos_fuel_alert(self):
         return '{0:get_moon(moonID)} POS "{0:get_item(typeID)}" is low on fuel: {0:get_pos_wants(wants)}'
