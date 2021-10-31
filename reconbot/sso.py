@@ -1,6 +1,8 @@
 import requests
 import base64
 import time
+import yaml
+import glob
 
 class SSO:
 
@@ -34,6 +36,11 @@ class SSO:
             response = r.json()            
             self.access_token = response['access_token']
             self.access_token_expiry = self.set_token_expiry(response['expires_in'])
+            if response['refresh_token'] != self.refresh_token:
+                old_refresh = self.refresh_token
+                self.refresh_token = response['refresh_token']
+                self.update_refresh_token_in_yaml(old_refresh, self.refresh_token)
+
             return self.access_token
         else:
             r.raise_for_status()
@@ -44,3 +51,17 @@ class SSO:
 
     def token_expired(self):
         return self.access_token_expiry == None or self.access_token_expiry <= time.time()
+
+    def update_refresh_token_in_yaml(self, old_refresh, new_refresh):
+        all_yamls = glob.glob('./*.yaml')
+        for yamlpath in all_yamls:
+            with open(yamlpath, 'r+') as file:
+                toons = yaml.load(file)
+                changed_token = False
+                for toon in toons.values():
+                    if toon['refresh_token'] == old_refresh:
+                        toon['refresh_token'] = new_refresh
+                        changed_token = True
+                        break
+                if changed_token:
+                    yaml.dump(toons, file, default_flow_style=False)
