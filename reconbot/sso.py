@@ -55,13 +55,15 @@ class SSO:
     def update_refresh_token_in_yaml(self, old_refresh, new_refresh):
         all_yamls = glob.glob('./*.yaml')
         for yamlpath in all_yamls:
-            with open(yamlpath, 'r+') as file:
+            with open(yamlpath, 'r') as file:
                 toons = yaml.load(file)
                 changed_token = False
                 for toon in toons.values():
                     if toon['refresh_token'] == old_refresh:
                         toon['refresh_token'] = new_refresh
                         changed_token = True
+                        print('Updated refresh token for {}'.format(toon['character_name']))
                         break
-                if changed_token:
+            if changed_token:
+                with open(yamlpath, 'w') as file:
                     yaml.dump(toons, file, default_flow_style=False)
