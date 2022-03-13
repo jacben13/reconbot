@@ -24,13 +24,16 @@ class Discord(Printer):
     def get_character(self, character_id):
         if not character_id:
             return 'Unknown character'
+        if character_id == 1000127 or character_id == 1000134:
+            npc_corp_name = self.get_corporation(character_id)
+            return '**Some Dickhead NPC** %s' % (npc_corp_name)
 
         try:
             character = self.eve.get_character(character_id)
         except requests.HTTPError as ex:
             # Patch for character being unresolvable and ESI throwing internal errors
             # Temporarily stub character to not break our behavior.
-            if ex.response.status_code == 500:
+            if ex.response.status_code in [404, 500]:
                 character = { 'name': 'Unknown character', 'corporation_id': 98356193 }
             else:
                 raise
