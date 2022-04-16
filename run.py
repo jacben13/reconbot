@@ -50,6 +50,8 @@ notifications = {
         'SovStructureDestroyed',
         'SovStructureReinforced',
         'StructureUnderAttack',
+        'OrbitalReinforced',
+        'OrbitalAttacked',
         'OwnershipTransferred',
         'StructureOnline',
         # 'StructureFuelAlert',
